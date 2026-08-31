@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>114康軒版1～2冊模擬測驗 - 各科等級計算機</title>
+    
+<style>
+*{box-sizing:border-box}
+body{font-family:"Segoe UI","Noto Sans TC",Tahoma,sans-serif;background:#f4f7f6;color:#333;margin:0;padding:20px}
+.container{background:#fff;padding:28px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-width:980px;width:100%;margin:0 auto}
+h1{text-align:center;color:#2c3e50;font-size:24px;margin:0 0 10px}
+.description{text-align:center;color:#7f8c8d;margin:0 0 20px;font-size:15px}
+.table-wrap{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;table-layout:fixed;min-width:720px}
+th,td{padding:11px 8px;text-align:center;border:1px solid #ddd}
+th{background:#4F81BD;color:#fff;font-size:15px}
+.input-cell{background:#E2EFDA}
+.calc-cell{background:#F2F2F2;font-size:14px;color:#555}
+.output-cell{background:#DDEBF7;font-weight:bold;color:#C00000;font-size:20px}
+input[type=number]{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;text-align:center;font-size:16px;background:transparent}
+input[type=number]:focus{outline:none;border-color:#4F81BD;background:#fff;box-shadow:0 0 5px rgba(79,129,189,.5)}
+.teacher-panel{margin-top:18px;border:1px solid #d8e0e8;border-radius:12px;background:#f8fafc;padding:16px}
+.teacher-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.teacher-btn,.action-btn{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:14px}
+.teacher-btn{background:#475569;color:#fff}.action-btn{background:#64748b;color:#fff;margin-top:12px}
+.teacher-note{font-size:13px;color:#64748b;margin:8px 0 0}
+#teacher-editor{display:none;margin-top:16px}
+.setting-section{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-top:12px}
+.setting-section h3{margin:0 0 10px;color:#2c3e50;font-size:16px}
+.setting-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.setting-grid label{font-size:12px;color:#475569;font-weight:700;text-align:center}
+.setting-grid input{margin-top:4px}
+.password-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.password-modal.show{display:flex}
+.password-box{width:min(380px,100%);background:#fff;border-radius:14px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.password-box h3{margin:0 0 8px}.password-box input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+.password-actions{display:flex;gap:8px;margin-top:12px}.password-actions button{flex:1;padding:10px;border:0;border-radius:8px;cursor:pointer}
+.password-ok{background:#4F81BD;color:#fff}.password-cancel{background:#e2e8f0;color:#334155}.password-error{color:#c00000;min-height:20px;font-size:13px;margin-top:6px}
+@media(max-width:700px){
+ body{padding:10px}.container{padding:16px}.table-wrap{overflow-x:auto}
+ h1{font-size:20px}.description{font-size:14px}
+ th,td{padding:8px 5px;font-size:13px}.output-cell{font-size:18px}
+ .setting-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:430px){.setting-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>114康軒版1～2冊模擬測驗<br>各科等級計算機</h1>
+        <p class="description">👉 請於「綠色區塊」輸入各科答對題數，系統會即時自動計算等級。</p>
+        
+        <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>科目</th>
+                    <th>自行輸入<br>(答對題數)</th>
+                    <th>總題數/分</th>
+                    <th>對應題數/<br>加權分數</th>
+                    <th>獲得等級標示</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 國文 -->
+                <tr>
+                    <td>國文</td>
+                    <td class="input-cell"><input type="number" id="chinese" min="0" max="42" step="1" placeholder="滿分42" oninput="calculate()"></td>
+                    <td>42</td>
+                    <td class="calc-cell" id="chinese-score">-</td>
+                    <td class="output-cell" id="chinese-grade"></td>
+                </tr>
+                <!-- 數學 -->
+                <tr>
+                    <td>數學（選擇）</td>
+                    <td class="input-cell"><input type="number" id="math-choice" min="0" max="25" step="1" placeholder="滿分25" oninput="calculate()"></td>
+                    <td>25</td>
+                    <td rowspan="2" class="calc-cell" id="math-score" style="vertical-align: middle;">-</td>
+                    <td rowspan="2" class="output-cell" id="math-grade" style="vertical-align: middle;"></td>
+                </tr>
+                <tr>
+                    <td>數學（非選）</td>
+                    <td class="input-cell"><input type="number" id="math-nonchoice" min="0" max="6" step="1" placeholder="滿分6" oninput="calculate()"></td>
+                    <td>6</td>
+                </tr>
+                <!-- 英文 -->
+                <tr>
+                    <td>英語（閱讀）</td>
+                    <td class="input-cell"><input type="number" id="english-read" min="0" max="43" step="1" placeholder="滿分43" oninput="calculate()"></td>
+                    <td>43</td>
+                    <td rowspan="2" class="calc-cell" id="english-score" style="vertical-align: middle;">-</td>
+                    <td rowspan="2" class="output-cell" id="english-grade" style="vertical-align: middle;"></td>
+                </tr>
+                <tr>
+                    <td>英語（英聽）</td>
+                    <td class="input-cell"><input type="number" id="english-listen" min="0" max="21" step="1" placeholder="滿分21" oninput="calculate()"></td>
+                    <td>21</td>
+                </tr>
+                <!-- 社會 -->
+                <tr>
+                    <td>社會</td>
+                    <td class="input-cell"><input type="number" id="social" min="0" max="54" step="1" placeholder="滿分54" oninput="calculate()"></td>
+                    <td>54</td>
+                    <td class="calc-cell" id="social-score">-</td>
+                    <td class="output-cell" id="social-grade"></td>
+                </tr>
+                <!-- 自然 -->
+                <tr>
+                    <td>自然</td>
+                    <td class="input-cell"><input type="number" id="science" min="0" max="50" step="1" placeholder="滿分50" oninput="calculate()"></td>
+                    <td>50</td>
+                    <td class="calc-cell" id="science-score">-</td>
+                    <td class="output-cell" id="science-grade"></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="teacher-panel">
+
+    
+<script>
+const DEFAULT_TOTALS = {
+  chinese:42, mathChoice:25, mathNonchoice:6,
+  englishRead:43, englishListen:21, social:54, science:50
+};
+
+const DEFAULT_THRESHOLDS = {
+  chinese:[{min:38,g:'A++'},{min:36,g:'A+'},{min:34,g:'A'},{min:29,g:'B++'},{min:25,g:'B+'},{min:16,g:'B'},{min:0,g:'C'}],
+  math:[{min:90,g:'A++'},{min:82.3,g:'A+'},{min:72.1,g:'A'},{min:62.8,g:'B++'},{min:55.1,g:'B+'},{min:37.2,g:'B'},{min:0,g:'C'}],
+  english:[{min:98.14,g:'A++'},{min:94.42,g:'A+'},{min:86.98,g:'A'},{min:78.58,g:'B++'},{min:67.42,g:'B+'},{min:36.57,g:'B'},{min:0,g:'C'}],
+  social:[{min:50,g:'A++'},{min:48,g:'A+'},{min:45,g:'A'},{min:38,g:'B++'},{min:33,g:'B+'},{min:21,g:'B'},{min:0,g:'C'}],
+  science:[{min:47,g:'A++'},{min:45,g:'A+'},{min:41,g:'A'},{min:34,g:'B++'},{min:28,g:'B+'},{min:18,g:'B'},{min:0,g:'C'}]
+};
+
+let totals = JSON.parse(localStorage.getItem('gradeTotals') || 'null') || {...DEFAULT_TOTALS};
+let thresholds = JSON.parse(localStorage.getItem('gradeThresholds') || 'null') || structuredClone(DEFAULT_THRESHOLDS);
+const TEACHER_PASSWORD = '114teacher';
+
+const totalFields = [
+  ['chinese','國文'],['mathChoice','數學（選擇）'],['mathNonchoice','數學（非選）'],
+  ['englishRead','英語（閱讀）'],['englishListen','英語（英聽）'],['social','社會'],['science','自然']
+];
+const subjectNames = {chinese:'國文',math:'數學',english:'英語',social:'社會',science:'自然'};
+const grades = ['A++','A+','A','B++','B+','B','C'];
+
+function round2(n){return Math.round(n*100)/100;}
+function getGrade(subject,value){
+  if(value==='' || isNaN(value)) return '';
+  const v=parseFloat(value);
+  const arr=[...thresholds[subject]].sort((a,b)=>b.min-a.min);
+  for(const x of arr) if(v>=x.min) return x.g;
+  return 'C';
+}
+function setInput(id,max){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.max=max;
+  el.placeholder='滿分'+max;
+}
+function updateTableLabels(){
+  document.querySelectorAll('tbody tr').forEach(()=>{});
+  const rows = [
+    ['chinese',totals.chinese],
+    ['math-choice',totals.mathChoice],
+    ['math-nonchoice',totals.mathNonchoice],
+    ['english-read',totals.englishRead],
+    ['english-listen',totals.englishListen],
+    ['social',totals.social],
+    ['science',totals.science]
+  ];
+  rows.forEach(([id,max])=>setInput(id,max));
+  const tds=document.querySelectorAll('tbody tr td:nth-child(3)');
+  const vals=[totals.chinese,totals.mathChoice,totals.mathNonchoice,totals.englishRead,totals.englishListen,totals.social,totals.science];
+  // Handle merged rows by explicit cells.
+  const cells=[...document.querySelectorAll('tbody tr')];
+  if(cells[0]) cells[0].children[2].textContent=totals.chinese;
+  if(cells[1]) cells[1].children[2].textContent=totals.mathChoice;
+  if(cells[2]) cells[2].children[2].textContent=totals.mathNonchoice;
+  if(cells[3]) cells[3].children[2].textContent=totals.englishRead;
+  if(cells[4]) cells[4].children[2].textContent=totals.englishListen;
+  if(cells[5]) cells[5].children[2].textContent=totals.social;
+  if(cells[6]) cells[6].children[2].textContent=totals.science;
+}
+function calculate(){
+  const chi=document.getElementById('chinese').value;
+  document.getElementById('chinese-score').innerText=chi===''?'-':chi;
+  document.getElementById('chinese-grade').innerText=chi===''?'':(parseFloat(chi)>totals.chinese?'錯誤':getGrade('chinese',chi));
+
+  const mc=document.getElementById('math-choice').value, mn=document.getElementById('math-nonchoice').value;
+  if(mc!==''&&mn!==''){
+    const c=parseFloat(mc), n=parseFloat(mn);
+    if(c>totals.mathChoice||n>totals.mathNonchoice){
+      document.getElementById('math-score').innerText='錯誤'; document.getElementById('math-grade').innerText='錯誤';
+    }else{
+      const score=round2((c/totals.mathChoice)*85+(n/totals.mathNonchoice)*15);
+      document.getElementById('math-score').innerText=score;
+      document.getElementById('math-grade').innerText=getGrade('math',score);
+    }
+  }else{document.getElementById('math-score').innerText='-';document.getElementById('math-grade').innerText='';}
+
+  const er=document.getElementById('english-read').value, el=document.getElementById('english-listen').value;
+  if(er!==''&&el!==''){
+    const r=parseFloat(er), l=parseFloat(el);
+    if(r>totals.englishRead||l>totals.englishListen){
+      document.getElementById('english-score').innerText='錯誤'; document.getElementById('english-grade').innerText='錯誤';
+    }else{
+      const score=round2((r/totals.englishRead)*80+(l/totals.englishListen)*20);
+      document.getElementById('english-score').innerText=score;
+      document.getElementById('english-grade').innerText=getGrade('english',score);
+    }
+  }else{document.getElementById('english-score').innerText='-';document.getElementById('english-grade').innerText='';}
+
+  const soc=document.getElementById('social').value;
+  document.getElementById('social-score').innerText=soc===''?'-':soc;
+  document.getElementById('social-grade').innerText=soc===''?'':(parseFloat(soc)>totals.social?'錯誤':getGrade('social',soc));
+
+  const sci=document.getElementById('science').value;
+  document.getElementById('science-score').innerText=sci===''?'-':sci;
+  document.getElementById('science-grade').innerText=sci===''?'':(parseFloat(sci)>totals.science?'錯誤':getGrade('science',sci));
+}
+function saveSettings(){
+  localStorage.setItem('gradeTotals',JSON.stringify(totals));
+  localStorage.setItem('gradeThresholds',JSON.stringify(thresholds));
+}
+function renderSettings(){
+  const totalBox=document.getElementById('total-editor');
+  totalBox.innerHTML='<div class="setting-grid">'+totalFields.map(([k,n])=>
+    `<label>${n}<input type="number" min="1" step="1" data-total="${k}" value="${totals[k]}"></label>`).join('')+'</div>';
+  totalBox.querySelectorAll('input').forEach(el=>el.onchange=()=>{
+    totals[el.dataset.total]=Math.max(1,parseInt(el.value)||1); saveSettings(); updateTableLabels(); calculate();
+  });
+
+  const box=document.getElementById('threshold-editor');
+  box.innerHTML=Object.entries(subjectNames).map(([key,name])=>
+    `<div class="setting-section"><h3>${name}</h3><div class="setting-grid">${
+      grades.map((g,i)=>`<label>${g}<input type="number" step="0.01" data-subject="${key}" data-index="${i}" value="${thresholds[key][i]?.min ?? 0}"></label>`).join('')
+    }</div></div>`).join('');
+  box.querySelectorAll('input').forEach(el=>el.onchange=()=>{
+    const key=el.dataset.subject,i=Number(el.dataset.index);
+    thresholds[key][i].min=Number(el.value)||0;
+    thresholds[key].sort((a,b)=>b.min-a.min);
+    saveSettings(); renderSettings(); calculate();
+  });
+}
+function openTeacherSettings(){
+  document.getElementById('password-modal').classList.add('show');
+  document.getElementById('teacher-password').value='';
+  document.getElementById('password-error').textContent='';
+  setTimeout(()=>document.getElementById('teacher-password').focus(),50);
+}
+function closePasswordModal(){document.getElementById('password-modal').classList.remove('show');}
+function verifyTeacherPassword(){
+  if(document.getElementById('teacher-password').value===TEACHER_PASSWORD){
+    closePasswordModal(); renderSettings(); document.getElementById('teacher-editor').style.display='block';
+  }else document.getElementById('password-error').textContent='密碼錯誤，無法開啟教師設定。';
+}
+function lockTeacherSettings(){document.getElementById('teacher-editor').style.display='none';}
+function resetSettings(){
+  totals={...DEFAULT_TOTALS}; thresholds=structuredClone(DEFAULT_THRESHOLDS);
+  saveSettings(); updateTableLabels(); renderSettings(); calculate();
+}
+updateTableLabels(); calculate();
+</script>
+
+
+<!-- 教師設定區：密碼保護 -->
+<section id="teacher-settings-panel" style="
+  margin:24px auto 0;max-width:980px;padding:18px;
+  border:2px solid #cbd5e1;border-radius:12px;background:#f8fafc;
+  font-family:inherit;box-sizing:border-box;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#334155;">🔒 教師設定</div>
+      <div style="font-size:13px;color:#64748b;margin-top:4px;">修改總題數與各科等級範圍（需教師密碼）</div>
+    </div>
+    <button type="button" onclick="openTeacherSettings()" style="
+      border:0;border-radius:8px;padding:10px 18px;background:#475569;color:white;
+      cursor:pointer;font-size:15px;">🔑 開啟教師設定</button>
+  </div>
+
+  <div id="teacher-editor" style="display:none;margin-top:18px;">
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:15px;">
+      <h3 style="margin:0 0 12px;color:#334155;">① 各科總題數／滿分</h3>
+      <div id="total-editor"></div>
+    </div>
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:15px;margin-top:12px;">
+      <h3 style="margin:0 0 12px;color:#334155;">② 各科等級最低門檻</h3>
+      <div id="threshold-editor"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <button type="button" onclick="resetSettings()" style="border:0;border-radius:8px;padding:9px 14px;background:#64748b;color:white;cursor:pointer;">恢復原始設定</button>
+      <button type="button" onclick="lockTeacherSettings()" style="border:0;border-radius:8px;padding:9px 14px;background:#334155;color:white;cursor:pointer;margin-left:8px;">🔒 鎖定設定</button>
+    </div>
+  </div>
+</section>
+
+<div id="password-modal" style="
+  display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);
+  z-index:99999;align-items:center;justify-content:center;padding:20px;">
+  <div style="width:min(380px,100%);background:white;border-radius:14px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3);">
+    <h3 style="margin:0 0 8px;">🔒 教師設定</h3>
+    <p style="margin:0 0 10px;color:#475569;">請輸入教師密碼才能修改設定。</p>
+    <input id="teacher-password" type="password" autocomplete="current-password"
+      placeholder="請輸入教師密碼"
+      style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px;">
+    <div id="password-error" style="color:#c00000;min-height:20px;font-size:13px;margin-top:7px;"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button type="button" onclick="closePasswordModal()" style="flex:1;padding:10px;border:0;border-radius:8px;cursor:pointer;">取消</button>
+      <button type="button" onclick="verifyTeacherPassword()" style="flex:1;padding:10px;border:0;border-radius:8px;background:#4F81BD;color:white;cursor:pointer;">確認</button>
+    </div>
+  </div>
+</div>
+
+
+<script id="teacher-settings-script">
+(function(){
+  const DEFAULT_TOTALS = {
+    chinese:42, mathChoice:25, mathNonchoice:6,
+    englishRead:43, englishListen:21, social:54, science:50
+  };
+  const DEFAULT_THRESHOLDS = {
+    chinese:[{min:38,g:'A++'},{min:36,g:'A+'},{min:34,g:'A'},{min:29,g:'B++'},{min:25,g:'B+'},{min:16,g:'B'},{min:0,g:'C'}],
+    math:[{min:90,g:'A++'},{min:82.3,g:'A+'},{min:72.1,g:'A'},{min:62.8,g:'B++'},{min:55.1,g:'B+'},{min:37.2,g:'B'},{min:0,g:'C'}],
+    english:[{min:98.14,g:'A++'},{min:94.42,g:'A+'},{min:86.98,g:'A'},{min:78.58,g:'B++'},{min:67.42,g:'B+'},{min:36.57,g:'B'},{min:0,g:'C'}],
+    social:[{min:50,g:'A++'},{min:48,g:'A+'},{min:45,g:'A'},{min:38,g:'B++'},{min:33,g:'B+'},{min:21,g:'B'},{min:0,g:'C'}],
+    science:[{min:47,g:'A++'},{min:45,g:'A+'},{min:41,g:'A'},{min:34,g:'B++'},{min:28,g:'B+'},{min:18,g:'B'},{min:0,g:'C'}]
+  };
+  window.teacherTotals = JSON.parse(localStorage.getItem('gradeTotals')||'null') || {...DEFAULT_TOTALS};
+  window.teacherThresholds = JSON.parse(localStorage.getItem('gradeThresholds')||'null') || structuredClone(DEFAULT_THRESHOLDS);
+
+  const totalFields=[
+    ['chinese','國文'],['mathChoice','數學（選擇）'],['mathNonchoice','數學（非選）'],
+    ['englishRead','英語（閱讀）'],['englishListen','英語（英聽）'],['social','社會'],['science','自然']
+  ];
+  const names={chinese:'國文',math:'數學',english:'英語',social:'社會',science:'自然'};
+  const grades=['A++','A+','A','B++','B+','B','C'];
+  const PASSWORD='114teacher';
+
+  window.openTeacherSettings=function(){
+    const m=document.getElementById('password-modal');
+    m.style.display='flex';
+    document.getElementById('teacher-password').value='';
+    document.getElementById('password-error').textContent='';
+    setTimeout(()=>document.getElementById('teacher-password').focus(),50);
+  };
+  window.closePasswordModal=function(){document.getElementById('password-modal').style.display='none';};
+  window.verifyTeacherPassword=function(){
+    if(document.getElementById('teacher-password').value===PASSWORD){
+      closePasswordModal();
+      renderTeacherSettings();
+      document.getElementById('teacher-editor').style.display='block';
+    }else{
+      document.getElementById('password-error').textContent='密碼錯誤，無法開啟教師設定。';
+    }
+  };
+  window.lockTeacherSettings=function(){document.getElementById('teacher-editor').style.display='none';};
+  window.resetSettings=function(){
+    window.teacherTotals={...DEFAULT_TOTALS};
+    window.teacherThresholds=structuredClone(DEFAULT_THRESHOLDS);
+    localStorage.setItem('gradeTotals',JSON.stringify(window.teacherTotals));
+    localStorage.setItem('gradeThresholds',JSON.stringify(window.teacherThresholds));
+    renderTeacherSettings();
+    if(typeof calculate==='function') calculate();
+  };
+
+  function save(){
+    localStorage.setItem('gradeTotals',JSON.stringify(window.teacherTotals));
+    localStorage.setItem('gradeThresholds',JSON.stringify(window.teacherThresholds));
+  }
+  function renderTeacherSettings(){
+    document.getElementById('total-editor').innerHTML=
+      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">'+
+      totalFields.map(([k,n])=>`<label style="font-size:12px;color:#475569;font-weight:700;text-align:center;">${n}<input type="number" min="1" step="1" value="${window.teacherTotals[k]}" data-total="${k}" style="width:100%;box-sizing:border-box;padding:8px;margin-top:4px;border:1px solid #cbd5e1;border-radius:6px;text-align:center;"></label>`).join('')+
+      '</div>';
+    document.querySelectorAll('[data-total]').forEach(el=>el.onchange=()=>{
+      window.teacherTotals[el.dataset.total]=Math.max(1,parseInt(el.value)||1);
+      save();
+      if(typeof updateTableLabels==='function') updateTableLabels();
+      if(typeof calculate==='function') calculate();
+    });
+
+    document.getElementById('threshold-editor').innerHTML=Object.entries(names).map(([k,n])=>
+      `<div style="margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;"><strong>${n}</strong><div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin-top:8px;">`+
+      grades.map((g,i)=>`<label style="font-size:11px;text-align:center;color:#475569;font-weight:700;">${g}<input type="number" step="0.01" value="${window.teacherThresholds[k][i].min}" data-sub="${k}" data-index="${i}" style="width:100%;box-sizing:border-box;padding:7px 3px;margin-top:3px;border:1px solid #cbd5e1;border-radius:6px;text-align:center;"></label>`).join('')+
+      '</div></div>'
+    ).join('');
+    document.querySelectorAll('[data-sub]').forEach(el=>el.onchange=()=>{
+      const a=window.teacherThresholds[el.dataset.sub];
+      a[Number(el.dataset.index)].min=Number(el.value)||0;
+      a.sort((x,y)=>y.min-x.min);
+      save();
+      renderTeacherSettings();
+      if(typeof calculate==='function') calculate();
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
